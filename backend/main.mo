@@ -24,7 +24,7 @@ actor {
     athDate : Text;
   };
 
-  public func getICPData() : async ?ICPData {
+  public func getICPData() : async ICPData {
     let url = COINGECKO_API_URL # "/coins/" # ICP_ID # "?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false";
     let request_headers = [
       { name = "User-Agent"; value = "Mozilla/5.0" },
@@ -41,21 +41,26 @@ actor {
       });
 
       switch (Text.decodeUtf8(response.body)) {
-        case null { Debug.print("Failed to decode response body"); null };
+        case null { Debug.print("Failed to decode response body"); defaultICPData() };
         case (?decoded_body) {
-          let data = parseICPData(decoded_body);
-          ?data;
+          parseICPData(decoded_body);
         };
       };
     } catch (err) {
       Debug.print("Error fetching ICP data: " # Error.message(err));
-      null;
+      defaultICPData();
     };
   };
 
   func parseICPData(json : Text) : ICPData {
     // This is a simplified parsing function. In a real-world scenario,
     // you would need a proper JSON parser and more robust error handling.
+    let data = defaultICPData();
+    // Implement parsing logic here
+    data;
+  };
+
+  func defaultICPData() : ICPData {
     {
       price = 0.0;
       marketCap = 0.0;

@@ -13,7 +13,7 @@ export interface ICPData {
   'price' : number,
 }
 export interface _SERVICE {
-  'getICPData' : ActorMethod<[], [] | [ICPData]>,
+  'getICPData' : ActorMethod<[], ICPData>,
   'greet' : ActorMethod<[string], string>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

@@ -10,7 +10,7 @@ export const idlFactory = ({ IDL }) => {
     'price' : IDL.Float64,
   });
   return IDL.Service({
-    'getICPData' : IDL.Func([], [IDL.Opt(ICPData)], []),
+    'getICPData' : IDL.Func([], [ICPData], []),
     'greet' : IDL.Func([IDL.Text], [IDL.Text], []),
   });
 };

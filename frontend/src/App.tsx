@@ -16,6 +16,8 @@ function App() {
   const [name, setName] = useState('');
   const [greeting, setGreeting] = useState('');
   const [icpData, setIcpData] = useState<ICPData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,14 +28,15 @@ function App() {
   useEffect(() => {
     const fetchICPData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const data = await backend.getICPData();
-        if (data) {
-          setIcpData(data);
-        } else {
-          console.error('Failed to fetch ICP data');
-        }
+        setIcpData(data);
       } catch (error) {
         console.error('Error fetching ICP data:', error);
+        setError('Failed to fetch ICP data. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -57,18 +60,18 @@ function App() {
       </form>
       {greeting && <p>{greeting}</p>}
       <h2>Internet Computer (ICP) Data</h2>
-      {icpData ? (
+      {loading && <p>Loading ICP data...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {icpData && !loading && !error && (
         <div>
-          <p>Current Price: ${icpData.price.toFixed(2)}</p>
-          <p>Market Cap: ${icpData.marketCap.toLocaleString()}</p>
-          <p>24h Trading Volume: ${icpData.volume24h.toLocaleString()}</p>
-          <p>24h Price Change: {icpData.priceChange24h.toFixed(2)}%</p>
-          <p>Circulating Supply: {icpData.circulatingSupply.toLocaleString()} ICP</p>
-          <p>Total Supply: {icpData.totalSupply.toLocaleString()} ICP</p>
-          <p>All Time High: ${icpData.ath.toFixed(2)} ({new Date(icpData.athDate).toLocaleDateString()})</p>
+          <p>Current Price: ${icpData.price?.toFixed(2) ?? 'N/A'}</p>
+          <p>Market Cap: ${icpData.marketCap?.toLocaleString() ?? 'N/A'}</p>
+          <p>24h Trading Volume: ${icpData.volume24h?.toLocaleString() ?? 'N/A'}</p>
+          <p>24h Price Change: {icpData.priceChange24h?.toFixed(2) ?? 'N/A'}%</p>
+          <p>Circulating Supply: {icpData.circulatingSupply?.toLocaleString() ?? 'N/A'} ICP</p>
+          <p>Total Supply: {icpData.totalSupply?.toLocaleString() ?? 'N/A'} ICP</p>
+          <p>All Time High: ${icpData.ath?.toFixed(2) ?? 'N/A'} ({icpData.athDate ? new Date(icpData.athDate).toLocaleDateString() : 'N/A'})</p>
         </div>
-      ) : (
-        <p>Loading ICP data...</p>
       )}
     </div>
   );

@@ -10,6 +10,6 @@ type ICPData =
    volume24h: float64;
  };
 service : {
-  getICPData: () -> (opt ICPData);
+  getICPData: () -> (ICPData);
   greet: (text) -> (text);
 }
