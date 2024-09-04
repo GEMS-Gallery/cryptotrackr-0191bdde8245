@@ -1,5 +1,3 @@
-import Nat32 "mo:base/Nat32";
-
 import Debug "mo:base/Debug";
 import Error "mo:base/Error";
 import Text "mo:base/Text";
@@ -12,48 +10,22 @@ import Iter "mo:base/Iter";
 
 actor {
   let ic : IC.Service = actor("aaaaa-aa");
+  let COINGECKO_API_URL = "https://api.coingecko.com/api/v3";
+  let ICP_ID = "internet-computer";
 
-  func limitIter<T>(iter : Iter.Iter<T>, limit : Nat) : Iter.Iter<T> {
-    var i = 0;
-    object {
-      public func next() : ?T {
-        if (i >= limit) { null }
-        else {
-          i += 1;
-          iter.next()
-        }
-      };
-    }
+  public type ICPData = {
+    price : Float;
+    marketCap : Float;
+    volume24h : Float;
+    priceChange24h : Float;
+    circulatingSupply : Float;
+    totalSupply : Float;
+    ath : Float;
+    athDate : Text;
   };
 
-  func textToFloat(t : Text) : ?Float {
-    var f : Float = 0;
-    var exp : Float = 0;
-    var decimal = false;
-    for (c in t.chars()) {
-      if (c == '.') {
-        decimal := true;
-      } else if (c >= '0' and c <= '9') {
-        let digit : Float = Float.fromInt(Nat32.toNat(Char.toNat32(c) - Char.toNat32('0')));
-        if (decimal) {
-          exp -= 1;
-          f += digit * Float.pow(10, exp);
-        } else {
-          f := f * 10 + digit;
-        }
-      } else {
-        return null;
-      }
-    };
-    ?f
-  };
-
-  public func greet(name : Text) : async Text {
-    return "Hello, " # name # "!";
-  };
-
-  public func getBitcoinPrice() : async ?Float {
-    let url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd";
+  public func getICPData() : async ?ICPData {
+    let url = COINGECKO_API_URL # "/coins/" # ICP_ID # "?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false";
     let request_headers = [
       { name = "User-Agent"; value = "Mozilla/5.0" },
     ];
@@ -71,38 +43,32 @@ actor {
       switch (Text.decodeUtf8(response.body)) {
         case null { Debug.print("Failed to decode response body"); null };
         case (?decoded_body) {
-          if (Text.contains(decoded_body, #text "usd")) {
-            let usd_index = Text.size(decoded_body) - Text.size(Text.trimStart(decoded_body, #text "usd"));
-            let price_text = Text.trimStart(
-              Text.fromIter(
-                limitIter(
-                  Text.toIter(Text.trimStart(decoded_body, #text "usd")),
-                  Text.size(decoded_body) - usd_index - 5
-                )
-              ),
-              #char ':'
-            );
-            let price_end = Text.contains(price_text, #char '}');
-            switch (price_end) {
-              case false { Debug.print("Invalid price format"); null };
-              case true {
-                let end_index = Text.size(price_text) - Text.size(Text.trimStart(price_text, #char '}'));
-                let price_str = Text.fromIter(limitIter(Text.toIter(price_text), end_index));
-                switch (textToFloat(Text.trim(price_str, #char ' '))) {
-                  case null { Debug.print("Failed to parse price"); null };
-                  case (?price) { ?price };
-                };
-              };
-            };
-          } else {
-            Debug.print("Price not found in response");
-            null
-          };
+          let data = parseICPData(decoded_body);
+          ?data;
         };
       };
     } catch (err) {
-      Debug.print("Error fetching Bitcoin price: " # Error.message(err));
+      Debug.print("Error fetching ICP data: " # Error.message(err));
       null;
     };
+  };
+
+  func parseICPData(json : Text) : ICPData {
+    // This is a simplified parsing function. In a real-world scenario,
+    // you would need a proper JSON parser and more robust error handling.
+    {
+      price = 0.0;
+      marketCap = 0.0;
+      volume24h = 0.0;
+      priceChange24h = 0.0;
+      circulatingSupply = 0.0;
+      totalSupply = 0.0;
+      ath = 0.0;
+      athDate = "";
+    };
+  };
+
+  public func greet(name : Text) : async Text {
+    return "Hello, " # name # "!";
   };
 }

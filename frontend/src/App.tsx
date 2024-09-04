@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
 
+interface ICPData {
+  price: number;
+  marketCap: number;
+  volume24h: number;
+  priceChange24h: number;
+  circulatingSupply: number;
+  totalSupply: number;
+  ath: number;
+  athDate: string;
+}
+
 function App() {
   const [name, setName] = useState('');
   const [greeting, setGreeting] = useState('');
-  const [bitcoinPrice, setBitcoinPrice] = useState<number | null>(null);
+  const [icpData, setIcpData] = useState<ICPData | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,21 +24,21 @@ function App() {
   };
 
   useEffect(() => {
-    const fetchBitcoinPrice = async () => {
+    const fetchICPData = async () => {
       try {
-        const price = await backend.getBitcoinPrice();
-        if (price !== null) {
-          setBitcoinPrice(price);
+        const data = await backend.getICPData();
+        if (data) {
+          setIcpData(data);
         } else {
-          console.error('Failed to fetch Bitcoin price');
+          console.error('Failed to fetch ICP data');
         }
       } catch (error) {
-        console.error('Error fetching Bitcoin price:', error);
+        console.error('Error fetching ICP data:', error);
       }
     };
 
-    fetchBitcoinPrice();
-    const interval = setInterval(fetchBitcoinPrice, 60000); // Update every minute
+    fetchICPData();
+    const interval = setInterval(fetchICPData, 60000); // Update every minute
 
     return () => clearInterval(interval);
   }, []);
@@ -45,11 +56,19 @@ function App() {
         <button type="submit">Greet</button>
       </form>
       {greeting && <p>{greeting}</p>}
-      <h2>Bitcoin Price</h2>
-      {bitcoinPrice !== null ? (
-        <p>${bitcoinPrice.toFixed(2)} USD</p>
+      <h2>Internet Computer (ICP) Data</h2>
+      {icpData ? (
+        <div>
+          <p>Current Price: ${icpData.price.toFixed(2)}</p>
+          <p>Market Cap: ${icpData.marketCap.toLocaleString()}</p>
+          <p>24h Trading Volume: ${icpData.volume24h.toLocaleString()}</p>
+          <p>24h Price Change: {icpData.priceChange24h.toFixed(2)}%</p>
+          <p>Circulating Supply: {icpData.circulatingSupply.toLocaleString()} ICP</p>
+          <p>Total Supply: {icpData.totalSupply.toLocaleString()} ICP</p>
+          <p>All Time High: ${icpData.ath.toFixed(2)} ({new Date(icpData.athDate).toLocaleDateString()})</p>
+        </div>
       ) : (
-        <p>Loading Bitcoin price...</p>
+        <p>Loading ICP data...</p>
       )}
     </div>
   );

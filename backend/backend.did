@@ -1,4 +1,15 @@
+type ICPData = 
+ record {
+   ath: float64;
+   athDate: text;
+   circulatingSupply: float64;
+   marketCap: float64;
+   price: float64;
+   priceChange24h: float64;
+   totalSupply: float64;
+   volume24h: float64;
+ };
 service : {
-  getBitcoinPrice: () -> (opt float64);
+  getICPData: () -> (opt ICPData);
   greet: (text) -> (text);
 }
