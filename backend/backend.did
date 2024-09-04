@@ -1,3 +1,4 @@
 service : {
+  getBitcoinPrice: () -> (opt float64);
   greet: (text) -> (text);
 }
